@@ -5,3 +5,10 @@ export function htmlEncode(text: string): string {
         .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
         .replace(/\n/g, '<br>');
 }
+export function textToArray(text: string): Array<number> {
+    const result = [];
+    for (let i = 0; i < text.length; i++) {
+        result.push(text.charCodeAt(i));
+    }
+    return result;
+}

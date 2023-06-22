@@ -3,7 +3,7 @@
 </svelte:head>
 
 <script lang="ts">
-	import { htmlEncode } from '$lib/util';
+	import { htmlEncode, textToArray } from '$lib/util';
     import { textToAudio } from '$lib/audio';
 	let fileInput: HTMLInputElement;
 	let file: File;
@@ -26,10 +26,10 @@
         const header = new Uint8Array(44);
         const dsize = data.length * 2;
         const size = dsize + 44;
-        header.set("RIFF".split('').map(c => c.charCodeAt(0)), 0);
+        header.set(textToArray("RIFF"), 0);
         header.set([size & 0xff, (size >> 8) & 0xff, (size >> 16) & 0xff, (size >> 24) & 0xff], 4);
-        header.set("WAVE".split('').map(c => c.charCodeAt(0)), 8);
-        header.set("fmt ".split('').map(c => c.charCodeAt(0)), 12);
+        header.set(textToArray("WAVE"), 8);
+        header.set(textToArray("fmt "), 12);
         header.set([0x10, 0x00, 0x00, 0x00], 16); // 16
         header.set([0x01, 0x00], 20); // 1
         header.set([0x01, 0x00], 22); // 1
@@ -37,7 +37,7 @@
         header.set([0x40, 0xc4, 0x0a, 0x00], 28); // 48100 * 16 * 1
         header.set([0x04, 0x00, 0x00, 0x00], 32); // 2 * 16 / 8
         header.set([0x10, 0x00], 34); // 16
-        header.set("data".split('').map(c => c.charCodeAt(0)), 36);
+        header.set(textToArray("data"), 36);
         header.set([dsize & 0xff, (dsize >> 8) & 0xff, (dsize >> 16) & 0xff, (dsize >> 24) & 0xff], 40);
         const blob = new Blob([header, data], { type: 'audio/wav' });
         const url = URL.createObjectURL(blob);
