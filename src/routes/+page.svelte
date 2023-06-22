@@ -3,7 +3,7 @@
 </svelte:head>
 
 <script lang="ts">
-	import { htmlEncode, textToArray } from '$lib/util';
+	import { htmlEncode, textToArray, u16leTou8a, u32leTou8a } from '$lib/util';
     import { textToAudio } from '$lib/audio';
 	let fileInput: HTMLInputElement;
 	let file: File;
@@ -27,18 +27,18 @@
         const dsize = data.length * 2;
         const size = dsize + 44;
         header.set(textToArray("RIFF"), 0);
-        header.set([size & 0xff, (size >> 8) & 0xff, (size >> 16) & 0xff, (size >> 24) & 0xff], 4);
+        header.set(u32leTou8a(size), 4);
         header.set(textToArray("WAVE"), 8);
         header.set(textToArray("fmt "), 12);
-        header.set([0x10, 0x00, 0x00, 0x00], 16); // 16
-        header.set([0x01, 0x00], 20); // 1
-        header.set([0x01, 0x00], 22); // 1
-        header.set([0x44, 0xac, 0x00, 0x00], 24); // 48100
-        header.set([0x40, 0xc4, 0x0a, 0x00], 28); // 48100 * 16 * 1
-        header.set([0x04, 0x00, 0x00, 0x00], 32); // 2 * 16 / 8
-        header.set([0x10, 0x00], 34); // 16
+        header.set(u32leTou8a(16), 16);
+        header.set(u16leTou8a(1), 20);
+        header.set(u16leTou8a(1), 22);
+        header.set(u32leTou8a(44100), 24);
+        header.set(u32leTou8a(44100 * 16 * 1), 28);
+        header.set(u32leTou8a(2 * 16 / 8), 32);
+        header.set(u16leTou8a(16), 34);
         header.set(textToArray("data"), 36);
-        header.set([dsize & 0xff, (dsize >> 8) & 0xff, (dsize >> 16) & 0xff, (dsize >> 24) & 0xff], 40);
+        header.set(u32leTou8a(dsize), 40);
         const blob = new Blob([header, data], { type: 'audio/wav' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
