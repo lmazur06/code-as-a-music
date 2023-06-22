@@ -23,22 +23,23 @@
         const audioContext = new AudioContext();
         const track: AudioBuffer = await textToAudio(audioContext, fileContent);
         const data = new Int16Array(track.getChannelData(0).map(v => Math.round(v * 0x7fff)));
-        const header = new Uint8Array(44);
         const dsize = data.length * 2;
         const size = dsize + 44;
-        header.set(textToArray("RIFF"), 0);
-        header.set(u32leTou8a(size), 4);
-        header.set(textToArray("WAVE"), 8);
-        header.set(textToArray("fmt "), 12);
-        header.set(u32leTou8a(16), 16);
-        header.set(u16leTou8a(1), 20);
-        header.set(u16leTou8a(1), 22);
-        header.set(u32leTou8a(44100), 24);
-        header.set(u32leTou8a(44100 * 16 * 1), 28);
-        header.set(u32leTou8a(2 * 16 / 8), 32);
-        header.set(u16leTou8a(16), 34);
-        header.set(textToArray("data"), 36);
-        header.set(u32leTou8a(dsize), 40);
+		const header = new Uint8Array([
+			...textToArray('RIFF'),
+			...u32leTou8a(size),
+			...textToArray('WAVE'),
+			...textToArray('fmt '),
+			...u32leTou8a(16),
+			...u16leTou8a(1),
+			...u16leTou8a(1),
+			...u32leTou8a(44100),
+			...u32leTou8a(44100 * 16 * 1),
+			...u16leTou8a(2 * 16 / 8),
+			...u16leTou8a(16),
+			...textToArray('data'),
+			...u32leTou8a(dsize)
+		]);
         const blob = new Blob([header, data], { type: 'audio/wav' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
