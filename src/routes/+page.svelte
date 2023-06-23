@@ -1,15 +1,19 @@
-<svelte:head>
-	<title>Code as a Music</title>
-</svelte:head>
-
 <script lang="ts">
-	import { htmlEncode, textToArray, u16leTou8a, u32leTou8a } from '$lib/util';
-    import { audioBufferToWavBlob, textToAudio } from '$lib/audio';
+	import { htmlEncode } from '$lib/util';
+	import { audioBufferToWavBlob, textToAudio } from '$lib/audio';
 	let fileInput: HTMLInputElement;
 	let file: File;
 	let fileContent: string;
 	let codePreview: HTMLElement;
+	let track: AudioBuffer | null;
+	let audioContext: AudioContext;
+	let source: AudioBufferSourceNode;
+	async function createAudioContext() {
+		audioContext = new AudioContext();
+	}
 	async function readCode() {
+		track = null;
+		source?.stop();
 		file = fileInput.files!![0];
 		const reader = new FileReader();
 		reader.addEventListener('load', (e) => {
@@ -19,37 +23,48 @@
 		if (file) reader.readAsText(file);
 		else codePreview.innerHTML = '';
 	}
-    async function download() {
-        const audioContext = new AudioContext();
-        const track: AudioBuffer = await textToAudio(audioContext, fileContent);
-        const blob = await audioBufferToWavBlob(audioContext, track);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = file.name + '.wav';
-        a.click();
-    }
-    async function play() {
-        const audioContext = new AudioContext();
-        const track = await textToAudio(audioContext, fileContent);
-        const source = audioContext.createBufferSource();
-        source.buffer = track;
-        source.connect(audioContext.destination);
-        source.start();
-    }
+	async function generate() {
+		source?.stop();
+		track = null;
+		track = await textToAudio(audioContext, fileContent);
+	}
+	async function download() {
+		const blob = await audioBufferToWavBlob(audioContext, track!!);
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = file.name + '.wav';
+		a.click();
+	}
+	async function play() {
+		source?.stop();
+		source = audioContext.createBufferSource();
+		source.buffer = track!!;
+		source.connect(audioContext.destination);
+		source.start();
+	}
 </script>
+
+<svelte:head>
+	<title>Code as a Music</title>
+</svelte:head>
 
 <div class="h-viewport flex-col">
 	<h1>Code as a Music</h1>
 	<div class="flex-row">
-		<input
-			type="file"
-			bind:this={fileInput}
-			on:change={readCode}
-			accept={/* ".json, .xml, .yml, .yaml, .md" */ ''}
-		/>
-		<button disabled={!file} on:click={download}>Download</button>
-		<button disabled={!file} on:click={play}>Play</button>
+		{#if !audioContext}
+			<button on:click={createAudioContext}>Create AudioContext</button>
+		{:else}
+			<input
+				type="file"
+				bind:this={fileInput}
+				on:change={readCode}
+				accept={/* ".json, .xml, .yml, .yaml, .md" */ ''}
+			/>
+			<button disabled={!file} on:click={generate}>Generate</button>
+			<button disabled={!file || !track} on:click={download}>Download</button>
+			<button disabled={!file || !track} on:click={play}>Play</button>
+		{/if}
 	</div>
 	<div id="code-preview" bind:this={codePreview} />
 </div>
