@@ -39,7 +39,7 @@
     }
 </script>
 
-<div class="root flex-col">
+<div class="h-viewport flex-col">
 	<h1>Code as a Music</h1>
 	<div class="flex-row">
 		<input
@@ -55,15 +55,6 @@
 </div>
 
 <style>
-	:root {
-		font-family: sans-serif;
-		background-color: #333;
-		color: #ddd;
-	}
-	h1 {
-		text-align: center;
-	}
-
 	button,
 	input {
 		border-radius: 5px;
@@ -84,10 +75,6 @@
 	}
 	::file-selector-button {
 		display: none;
-	}
-
-	.root {
-		height: 100vh;
 	}
 
 	#code-preview {

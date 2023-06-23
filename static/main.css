@@ -1,4 +1,7 @@
 body {
+	font-family: sans-serif;
+	background-color: #333;
+	color: #ddd;
 	margin: 0;
 }
 * {
@@ -27,4 +30,7 @@ body {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+}
+.h-viewport {
+	height: 100vh;
 }
