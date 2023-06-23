@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import { htmlEncode, textToArray, u16leTou8a, u32leTou8a } from '$lib/util';
-    import { textToAudio } from '$lib/audio';
+    import { audioBufferToWavBlob, textToAudio } from '$lib/audio';
 	let fileInput: HTMLInputElement;
 	let file: File;
 	let fileContent: string;
@@ -22,25 +22,7 @@
     async function download() {
         const audioContext = new AudioContext();
         const track: AudioBuffer = await textToAudio(audioContext, fileContent);
-        const data = new Int16Array(track.getChannelData(0).map(v => Math.round(v * 0x7fff)));
-        const dsize = data.length * 2;
-        const size = dsize + 44;
-		const header = new Uint8Array([
-			...textToArray('RIFF'),
-			...u32leTou8a(size),
-			...textToArray('WAVE'),
-			...textToArray('fmt '),
-			...u32leTou8a(16),
-			...u16leTou8a(1),
-			...u16leTou8a(1),
-			...u32leTou8a(44100),
-			...u32leTou8a(44100 * 16 * 1),
-			...u16leTou8a(2 * 16 / 8),
-			...u16leTou8a(16),
-			...textToArray('data'),
-			...u32leTou8a(dsize)
-		]);
-        const blob = new Blob([header, data], { type: 'audio/wav' });
+        const blob = await audioBufferToWavBlob(audioContext, track);
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
